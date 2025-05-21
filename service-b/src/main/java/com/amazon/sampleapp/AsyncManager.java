@@ -16,13 +16,14 @@ import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.time.LocalTime;
 
 
 
 @Service
 public class AsyncManager {
     private static final Logger logger = LoggerFactory.getLogger(AsyncManager.class);
-    private final String rdsConnectionurl = "jdbc:mysql://adaptive-sampling-demo-database-2.cluster-ci3qowicxt1h.us-east-1.rds.amazonaws.com:3306";
+    private final String rdsConnectionurl = "jdbc:mysql://adaptive-sampling-database.c5yi8u2qqqi3.us-east-2.rds.amazonaws.com:3306";
     private final String rdsUsername = "admin";
 
     private static final String rdsPassword = "password";
@@ -44,9 +45,11 @@ public class AsyncManager {
     }
 
     public String getPassword() {
-        int currentSecond = java.time.LocalTime.now().getSecond();
-        String password = (currentSecond <= 10) ? "Fake Password" : rdsPassword;
-        logger.info("Current second: {}. Password being used: {}", currentSecond, password);
+        LocalTime now = java.time.LocalTime.now();
+        int currentSecond = now.getSecond();
+        int currentMinute = now.getMinute();
+        String password = (currentSecond <= 10 && currentMinute % 10 == 0) ? "Fake Password" : rdsPassword;
+        logger.info("Minute: {} | Second: {} | Password being used: {}", currentMinute, currentSecond, password);
 
         return password;
     }
