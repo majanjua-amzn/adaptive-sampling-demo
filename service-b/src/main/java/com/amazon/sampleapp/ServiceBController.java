@@ -14,42 +14,30 @@
  */
 
 package com.amazon.sampleapp;
+
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.concurrent.CompletableFuture;
 import io.opentelemetry.api.trace.Span;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RequestBody;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.springframework.stereotype.Component;
-import org.springframework.scheduling.annotation.Async;
-import java.util.concurrent.CompletableFuture;
-
-
-import java.util.concurrent.atomic.AtomicReference;
-
-import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-
-
-
 
 @Controller
 public class ServiceBController {
   private static final Logger logger = LoggerFactory.getLogger(ServiceBController.class);
-
-  private final AtomicReference<String> currentPassword = new AtomicReference<>("");
+  private final AsyncManager asyncManager;
+  private final String rdsConnectionurl = "jdbc:mysql://adaptive-sampling-database.cluster-ro-cb0gswiggqla.us-west-2.rds.amazonaws.com:3306";
+  private final String rdsUsername = "admin";
 
   @Autowired
-  private AsyncManager asyncManager;
+  public ServiceBController(AsyncManager asyncManager) {
+    this.asyncManager = asyncManager;
+  }
 
   @GetMapping("/healthcheck")
   @ResponseBody
@@ -57,55 +45,36 @@ public class ServiceBController {
     return "Remote service healthcheck";
   }
 
-  // Uses the /mysql endpoint to make an SQL call
-  @GetMapping("/service_b_async_endpoint")
+  @GetMapping("/b")
   @ResponseBody
-  public CompletableFuture<String> service_b_async_endpoint() {
-    return asyncManager.connectToDatabase();
+  public String b(@RequestParam(name = "success", required = false) Boolean success) {
+    asyncManager.callAsyncApi(success);
+    return "Service B called successfully";
   }
 
-  // @GetMapping("/cluster_password")
-  // @ResponseBody
-  // public String clusterPassword() {
-  //     return getClusterPassword()
-  // }
-
-  // private String getClusterPassword() {
-  //   try {
-  //       java.net.URL url = new java.net.URL("http://localhost:8081/cluster_password");
-  //       java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
-  //       conn.setRequestMethod("GET");
-
-  //       try (java.io.BufferedReader in = new java.io.BufferedReader(
-  //               new java.io.InputStreamReader(conn.getInputStream()))) {
-  //           String inputLine;
-  //           StringBuilder content = new StringBuilder();
-  //           while ((inputLine = in.readLine()) != null) {
-  //               content.append(inputLine);
-  //           }
-  //           return content.toString();
-  //       }
-  //   } catch (Exception e) {
-  //       logger.error("Failed to fetch cluster password from internal endpoint: {}", e.getMessage());
-  //       throw new RuntimeException(e);
-  //   }
-  // }
-
-  // // Every 10 minutes, hide the password for 10 seconds
-  // @Scheduled(fixedRate = 60 * 1000)
-  // public void hidePasswordTemporarily() {
-  //     currentPassword.set("Fake Password");
-  //     logger.info("passport being changed");
-
-  //     new Thread(() -> {
-  //         try {
-  //             Thread.sleep(10 * 1000); // 10 seconds
-  //             currentPassword.set(rdsPassword);
-  //             System.out.println("Password restored");
-  //         } catch (InterruptedException ignored) {
-  //         }
-  //     }).start();
-  // }
+  @GetMapping("/b-async")
+  @ResponseBody
+  public CompletableFuture<String> bAsync(@RequestParam(name = "success", required = false) Boolean success) {
+    if (success == null) {
+      success = true;
+    }
+    try {
+      DriverManager.getConnection(
+        rdsConnectionurl,
+        rdsUsername,
+        success ? "password" : "incorrect");
+      logger.info("Connection was successful");
+      return CompletableFuture.completedFuture(getXrayTraceId());
+    } catch (SQLException e) {
+      // Ignore exception because we meant to pass anyways
+      // if (success) {
+      //   logger.info("False success - setup is problematic");
+      //   return CompletableFuture.completedFuture(getXrayTraceId());
+      // }
+      logger.error("Could not complete SQL request");
+      throw new RuntimeException(e);
+    }
+  }
 
   // get x-ray trace id
   private String getXrayTraceId() {
