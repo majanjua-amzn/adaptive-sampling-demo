@@ -19,14 +19,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.concurrent.CompletableFuture;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.context.Context;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,18 +28,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Controller
-public class ServiceBController {
-  private static final Logger logger = LoggerFactory.getLogger(ServiceBController.class);
+public class ServiceCController {
+  private static final Logger logger = LoggerFactory.getLogger(ServiceCController.class);
   private final String rdsConnectionurl = "jdbc:mysql://adaptive-sampling-database.cluster-ro-cb0gswiggqla.us-west-2.rds.amazonaws.com:3306";
   private final String rdsUsername = "admin";
-  private final CloseableHttpClient httpClient;
-
-  private static final Tracer tracer = GlobalOpenTelemetry.getTracer("my-async-tracer");
-
-  @Autowired
-  public ServiceBController(CloseableHttpClient httpClient) {
-    this.httpClient = httpClient;
-  }
 
   @GetMapping("/healthcheck")
   @ResponseBody
@@ -54,33 +39,9 @@ public class ServiceBController {
     return "Remote service healthcheck";
   }
 
-  @GetMapping("/b")
+  @GetMapping("/c")
   @ResponseBody
-  public String b(@RequestParam(name = "success", required = false) Boolean success) {
-    if (success == null) {
-      success = true;
-    }
-
-    try {
-      Thread.sleep(50);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-
-    HttpGet request = new HttpGet("http://localhost:8082/c?success=" + success.toString());
-    try (CloseableHttpResponse response = httpClient.execute(request)) {
-      int statusCode = response.getStatusLine().getStatusCode();
-    } catch (Exception e) {
-      logger.error("Could not complete HTTP request: {}", e.getMessage());
-    }
-
-
-    return "Service B called successfully";
-  }
-
-  @GetMapping("/b-async")
-  @ResponseBody
-  public CompletableFuture<String> bAsync(@RequestParam(name = "success", required = false) Boolean success) {
+  public CompletableFuture<String> c(@RequestParam(name = "success", required = false) Boolean success) {
     if (success == null) {
       success = true;
     }
