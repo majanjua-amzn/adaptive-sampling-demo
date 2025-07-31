@@ -27,8 +27,10 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.slf4j.Logger;
@@ -100,6 +102,24 @@ public class ServiceBController {
       logger.error("Could not complete SQL request");
       throw new RuntimeException(e);
     }
+  }
+
+  @GetMapping("/status/{code}")
+  public ResponseEntity<String> status(@PathVariable int code) {
+    logger.info("Service B returning status code: {}", code);
+    return ResponseEntity.status(code).build();
+  }
+
+  @GetMapping("/status/c/{code}")
+  public ResponseEntity<String> statusC(@PathVariable int code) {
+    try {
+        HttpGet request = new HttpGet("http://localhost:8082/status/c/" + code);
+        httpClient.execute(request).close();
+    } catch (Exception e) {
+        // Ignore exception
+    }
+    logger.info("Service B requested status code {} from Service C", code);
+    return ResponseEntity.ok().build();
   }
 
   // get x-ray trace id

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.stereotype.Controller;
@@ -54,6 +55,32 @@ public ResponseEntity<String> pingServiceB(@RequestParam(name = "success", requi
     } catch (Exception e) {
         return ResponseEntity.ok("Returning OK - /b called with exception: " + e.getMessage());
     }
+}
+
+@GetMapping("/status/{code}")
+@ResponseBody
+public ResponseEntity<String> status(@PathVariable int code) {
+    try {
+        HttpGet request = new HttpGet("http://localhost:8081/status/" + code);
+        httpClient.execute(request).close();
+    } catch (Exception e) {
+        // Ignore exception
+    }
+    logger.info("Service A requested status code {} from Service B", code);
+    return ResponseEntity.ok().build();
+}
+
+@GetMapping("/status/c/{code}")
+@ResponseBody
+public ResponseEntity<String> statusC(@PathVariable int code) {
+    try {
+        HttpGet request = new HttpGet("http://localhost:8081/status/c/" + code);
+        httpClient.execute(request).close();
+    } catch (Exception e) {
+        // Ignore exception
+    }
+    logger.info("Service A requested status code {} from Service C through Service B", code);
+    return ResponseEntity.ok().build();
 }
 
   // get x-ray trace id

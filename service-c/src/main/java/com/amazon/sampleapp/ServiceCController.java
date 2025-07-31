@@ -20,8 +20,10 @@ import java.sql.SQLException;
 import java.util.concurrent.CompletableFuture;
 
 import io.opentelemetry.api.trace.Span;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.slf4j.Logger;
@@ -61,6 +63,12 @@ public class ServiceCController {
       logger.error("Could not complete SQL request");
       throw new RuntimeException(e);
     }
+  }
+
+  @GetMapping("/status/c/{code}")
+  public ResponseEntity<String> statusC(@PathVariable int code) {
+    logger.info("Service C returning status code: {}", code);
+    return ResponseEntity.status(code).build();
   }
 
   // get x-ray trace id
