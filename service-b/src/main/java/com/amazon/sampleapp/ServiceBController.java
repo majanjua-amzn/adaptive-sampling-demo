@@ -115,11 +115,19 @@ public class ServiceBController {
     try {
         HttpGet request = new HttpGet("http://localhost:8082/status/c/" + code);
         httpClient.execute(request).close();
+        request = new HttpGet("http://localhost:8082/status/c/501");
+        httpClient.execute(request).close();
+        request = new HttpGet("http://localhost:8082/status/c/" + code);
+        httpClient.execute(request).close();
+        request = new HttpGet("http://localhost:8082/status/c/200");
+        httpClient.execute(request).close();
+        request = new HttpGet("http://localhost:8082/status/c/200");
+        httpClient.execute(request).close();
     } catch (Exception e) {
         // Ignore exception
     }
     logger.info("Service B requested status code {} from Service C", code);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.status(code).build();
   }
 
   // get x-ray trace id
