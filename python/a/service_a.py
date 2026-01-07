@@ -16,8 +16,13 @@ def healthcheck():
     logger.info('/healthcheck called')
     return 'Success - /healthcheck'
 
-@app.route('/status/<int:code>')
-def status(code):
+@app.route('/status/a/<int:code>')
+def status_a(code):
+    logger.info(f'Service A returning status code: {code}')
+    return '', code
+
+@app.route('/status/b/<int:code>')
+def status_b(code):
     try:
         requests.get(f'http://localhost:8081/status/{code}')
     except:
