@@ -6,6 +6,16 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+@app.route('/')
+def hello():
+    logger.info('/ called')
+    return 'Success - /'
+
+@app.route('/healthcheck')
+def healthcheck():
+    logger.info('/healthcheck called')
+    return 'Success - /healthcheck'
+
 @app.route('/status/<int:code>')
 def status(code):
     try:
