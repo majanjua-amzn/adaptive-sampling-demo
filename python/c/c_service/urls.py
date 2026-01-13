@@ -5,4 +5,5 @@ from c_service_app import views
 
 urlpatterns = [
     path('status/c/<int:code>', views.status_c),
+    path('latency/c/<int:seconds>', views.latency_c),
 ]

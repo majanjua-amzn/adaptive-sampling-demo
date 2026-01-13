@@ -6,4 +6,5 @@ from b_service_app import views
 urlpatterns = [
     path('status/<int:code>', views.status),
     path('status/c/<int:code>', views.status_c),
+    path('latency/c/<int:seconds>', views.latency_c),
 ]

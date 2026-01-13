@@ -39,3 +39,11 @@ def status_c(request, code):
         pass
     logger.info(f'Service A requested status code {code} from Service C through Service B')
     return HttpResponse('', status=200)
+
+def latency_c(request, seconds):
+    try:
+        requests.get(f'http://localhost:8081/latency/c/{seconds}')
+    except Exception:
+        pass
+    logger.info(f'Service A requested {seconds} second latency from Service C through Service B')
+    return HttpResponse('', status=200)
