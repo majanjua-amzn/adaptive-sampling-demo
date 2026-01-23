@@ -10,4 +10,5 @@ urlpatterns = [
     path('status/b/<int:code>', views.status_b),
     path('status/c/<int:code>', views.status_c),
     path('latency/c/<int:seconds>', views.latency_c),
+    path('multi/b/<int:amount>', views.multi_b),
 ]
